@@ -5,8 +5,11 @@ const createExportProduct = async (req, res) => {
       implementer,
       luxasCode,
       image,
+      partName,
+      model,
+      shCode,
       saleForCompany,
-      quality,
+      quantity,
       unit,
       price,
       amount,
@@ -22,8 +25,11 @@ const createExportProduct = async (req, res) => {
       !implementer ||
       !luxasCode ||
       !image ||
+      !partName ||
+      !model ||
+      !shCode ||
       !saleForCompany ||
-      !quality ||
+      !quantity ||
       !unit ||
       !price ||
       !amount ||
@@ -39,7 +45,7 @@ const createExportProduct = async (req, res) => {
         message: "The input is required",
       });
     }
-    let response = await ExportProductService.createExportProduct(req.body);
+    const response = await ExportProductService.createExportProduct(req.body);
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({ message: e });
@@ -64,6 +70,40 @@ const updateExportProduct = async (req, res) => {
     return res.status(404).json({ message: e });
   }
 };
+const deleteExportProduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    if (!productId) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The ProductId is required",
+      });
+    }
+    const response = await ExportProductService.deleteExportProduct(productId);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({ message: e });
+  }
+};
+
+const getDetailsExportProduct = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    if (!productId) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The ProductId is required",
+      });
+    }
+    const response = await ExportProductService.getDetailsExportProduct(
+      productId
+    );
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({ message: e });
+  }
+};
+
 const getAllExportProduct = async (req, res) => {
   try {
     const { limit, page, sort, filter } = req.query;
@@ -84,4 +124,6 @@ module.exports = {
   createExportProduct,
   updateExportProduct,
   getAllExportProduct,
+  deleteExportProduct,
+  getDetailsExportProduct,
 };

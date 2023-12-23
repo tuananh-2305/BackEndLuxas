@@ -26,7 +26,7 @@ const createUser = (newUser) => {
       if (createdUser) {
         resolve({
           status: "OK",
-          message: "SUCCESS",
+          message: "CREATE USER SUCCESS",
           data: createdUser,
         });
       }
@@ -86,7 +86,9 @@ const updateUser = (id, data) => {
           message: "The User is not defined",
         });
       }
-      const updateUser = await User.findByIdAndUpdate(id, data, { new: true });
+      const updateUser = await User.findOneAndUpdate(checkUser, data, {
+        new: true,
+      });
       resolve({
         status: "OK",
         message: "UPDATE USER SUCCESS",

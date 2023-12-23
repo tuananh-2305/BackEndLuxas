@@ -13,7 +13,7 @@ const createProduct = (newProduct) => {
       suppliesAddress,
       maker,
       shCode,
-      quality,
+      quantity,
       unit,
       price,
       amount,
@@ -49,7 +49,7 @@ const createProduct = (newProduct) => {
         suppliesAddress,
         maker,
         shCode,
-        quality,
+        quantity,
         unit,
         price,
         amount,
@@ -77,10 +77,9 @@ const createProduct = (newProduct) => {
   });
 };
 const updateProduct = (id, data) => {
-  // console.log(id, data);
   return new Promise(async (resolve, reject) => {
     try {
-      const checkProduct = await Product.findOne({ _id: id });
+      const checkProduct = await Product.findById({ _id: id });
 
       if (checkProduct === null) {
         resolve({
@@ -88,15 +87,13 @@ const updateProduct = (id, data) => {
           message: "The Product is not defined",
         });
       }
-      checkProduct.supplies = data.supplies;
       const updateProduct = await Product.findByIdAndUpdate(
-        checkProduct,
+        { _id: id },
+        { $set: data },
         {
-          $set: data,
-        },
-        { new: true }
+          new: true,
+        }
       );
-      console.log(updateProduct.supplies);
       resolve({
         status: "OK",
         message: "UPDATE PRODUCT SUCCESS",

@@ -14,5 +14,13 @@ router.get(
   "/get-all-export-product",
   ExportProductController.getAllExportProduct
 );
+router.get(
+  "/details-export-product/:id",
+  ExportProductController.getDetailsExportProduct
+);
+router.delete(
+  "/delete-export-product/:id",
+  ExportProductController.deleteExportProduct
+);
 
 module.exports = router;

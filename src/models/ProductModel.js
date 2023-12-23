@@ -13,7 +13,7 @@ const productSchema = new mongoose.Schema(
     suppliesAddress: { type: String, required: true },
     maker: { type: String, required: true },
     shCode: { type: Number, required: true },
-    quality: { type: Number, required: true },
+    quantity: { type: Number, required: true },
     unit: { type: String, required: true },
     price: { type: Number, required: true },
     amount: { type: Number, required: true },

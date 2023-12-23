@@ -56,7 +56,8 @@ const loginUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const dataUser = req.body;
+    //const [inforUser, setInforUser] = useState(initial());
+    const dataUser = req.body.inforUser;
     if (!userId) {
       return res.status(200).json({
         status: "ERR",

@@ -13,7 +13,7 @@ const createProduct = async (req, res) => {
       suppliesAddress,
       maker,
       shCode,
-      quality,
+      quantity,
       unit,
       price,
       amount,
@@ -39,7 +39,7 @@ const createProduct = async (req, res) => {
       !suppliesAddress ||
       !maker ||
       !shCode ||
-      !quality ||
+      !quantity ||
       !unit ||
       !price ||
       !amount ||
@@ -66,7 +66,8 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const productId = req.params.id;
-    const dataProduct = req.body;
+    ////const [productDetails, setProductDetails] = useState(initial());
+    const dataProduct = req.body.productDetails;
     if (!productId) {
       return res.status(200).json({
         status: "ERR",
