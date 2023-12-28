@@ -2,7 +2,6 @@ const ProductService = require("../services/ProductService");
 const createProduct = async (req, res) => {
   try {
     const {
-      image,
       importDate,
       importNo_VatNo,
       luxasCode,
@@ -14,6 +13,7 @@ const createProduct = async (req, res) => {
       maker,
       shCode,
       quantity,
+      limitSetting,
       unit,
       price,
       amount,
@@ -28,6 +28,7 @@ const createProduct = async (req, res) => {
       stockLocal,
       note,
     } = req.body;
+    const image = req.file;
     if (
       !importDate ||
       !importNo_VatNo ||
@@ -40,6 +41,7 @@ const createProduct = async (req, res) => {
       !maker ||
       !shCode ||
       !quantity ||
+      !limitSetting ||
       !unit ||
       !price ||
       !amount ||
@@ -56,8 +58,13 @@ const createProduct = async (req, res) => {
         status: "ERR",
         message: "The input is required",
       });
+    } else if (!image) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The image is required",
+      });
     }
-    let response = await ProductService.createProduct(req.body);
+    let response = await ProductService.createProduct(req.body, image);
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({ message: e });
@@ -129,10 +136,22 @@ const getAllProduct = async (req, res) => {
   }
 };
 
+const getAllLimitProduct = async (req, res) => {
+  try {
+    const response = await ProductService.getAllLimitProduct();
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({
+      message: e,
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
   getDetailsProduct,
   getAllProduct,
+  getAllLimitProduct,
 };

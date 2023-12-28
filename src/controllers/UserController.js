@@ -3,7 +3,8 @@ const jwtService = require("../services/jwtService");
 
 const createUser = async (req, res) => {
   try {
-    const { name, isAdmin, image, idLuxas, email, password, phone } = req.body;
+    const { name, isAdmin, idLuxas, email, password, phone } = req.body;
+    const image = req.file;
     const reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const ischeckEmail = reg.test(email);
     if (!name || !isAdmin || !idLuxas || !email || !password || !phone) {
@@ -11,13 +12,18 @@ const createUser = async (req, res) => {
         status: "ERR",
         message: "The input is required.",
       });
+    } else if (!image) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The image is required",
+      });
     } else if (!ischeckEmail) {
       return res.status(200).json({
         status: "ERR",
         message: "The email is incorrect",
       });
     }
-    const response = await UserService.createUser(req.body);
+    const response = await UserService.createUser(req.body, image);
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({ message: e });

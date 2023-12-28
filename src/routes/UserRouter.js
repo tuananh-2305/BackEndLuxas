@@ -6,7 +6,21 @@ const {
   authUserMiddleWare,
 } = require("../middleware/authMiddleware");
 
-router.post("/register", UserController.createUser);
+const multer = require("multer");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, path.join(__dirname, "../uploads/images/avatar"));
+  },
+  filename: function (req, file, callback) {
+    callback(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+router.post("/register", upload.single("image"), UserController.createUser);
 router.post("/login", UserController.loginUser);
 router.post("/log-out", UserController.logoutUser);
 router.put("/update-user/:id", authMiddleWare, UserController.updateUser);

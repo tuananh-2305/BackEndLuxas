@@ -54,7 +54,7 @@ const createExportProduct = async (req, res) => {
 const updateExportProduct = async (req, res) => {
   try {
     const productId = req.params.id;
-    const dataProduct = req.body;
+    const dataProduct = req.body.productDetails;
     if (!productId) {
       return res.status(200).json({
         status: "ERR",

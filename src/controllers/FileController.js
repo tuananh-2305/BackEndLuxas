@@ -7,7 +7,7 @@ const uploadFile = async (req, res, next) => {
         const newFile = arrayFiles[i];
         var response = await FileService.uploadFile(newFile);
       }
-      return res.status(404).json(response);
+      return res.status(200).json(response);
     }
   } catch (e) {
     return res.status(404).json({ message: e });

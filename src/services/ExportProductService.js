@@ -1,4 +1,5 @@
-const ExportProduct = require("../models/ExportProductService");
+const ExportProduct = require("../models/ExportProductModal");
+const Product = require("../models/ProductModel");
 const createExportProduct = (newExportProduct) => {
   return new Promise(async (resolve, reject) => {
     const {
@@ -21,17 +22,7 @@ const createExportProduct = (newExportProduct) => {
       profit,
       note,
     } = newExportProduct;
-
     try {
-      // const checkProduct = await ExportProduct.findOne({
-      //   luxasCode: luxasCode,
-      // });
-      // if (checkProduct != null) {
-      //   resolve({
-      //     status: "ERR",
-      //     message: "The LuxasCode Of Product Is Already Exist",
-      //   });
-      // }
       const newExportProduct = await ExportProduct.create({
         implementer,
         luxasCode,
@@ -68,27 +59,68 @@ const createExportProduct = (newExportProduct) => {
 const updateExportProduct = (id, data) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const checkProduct = await ExportProduct.findOne({ _id: id });
+      const checkExportProduct = await ExportProduct.findOne({ _id: id });
 
+      const checkProduct = await Product.findOne({
+        luxasCode: checkExportProduct.luxasCode,
+      });
+      const idProduct = checkProduct._id.toString();
+      const quantityUpdate = data.quantity;
+      const quantityExport = checkExportProduct.quantity;
+      const quantityProduct = checkProduct.quantity;
       if (checkProduct === null) {
         resolve({
           status: "ERR",
           message: "The Export Product is not defined",
         });
       }
-
-      const updateExportProduct = await ExportProduct.findByIdAndUpdate(
-        id,
-        data,
-        {
-          new: true,
-        }
-      );
-      resolve({
-        status: "OK",
-        message: "UPDATE EXPORT PRODUCT SUCCESS",
-        data: updateExportProduct,
-      });
+      if (quantityUpdate <= quantityExport) {
+        await Product.findByIdAndUpdate(
+          idProduct,
+          {
+            quantity:
+              Number(quantityProduct) + Number(quantityExport - quantityUpdate),
+          },
+          {
+            new: true,
+          }
+        );
+        const updateExportProduct = await ExportProduct.findByIdAndUpdate(
+          { _id: id },
+          { $set: data },
+          {
+            new: true,
+          }
+        );
+        resolve({
+          status: "OK",
+          message: "UPDATE EXPORT PRODUCT SUCCESS",
+          data: updateExportProduct,
+        });
+      } else if (quantityUpdate > quantityExport) {
+        await Product.findByIdAndUpdate(
+          idProduct,
+          {
+            quantity:
+              Number(quantityProduct) - Number(quantityUpdate - quantityExport),
+          },
+          {
+            new: true,
+          }
+        );
+        const updateExportProduct = await ExportProduct.findByIdAndUpdate(
+          { _id: id },
+          { $set: data },
+          {
+            new: true,
+          }
+        );
+        resolve({
+          status: "OK",
+          message: "UPDATE EXPORT PRODUCT SUCCESS",
+          data: updateExportProduct,
+        });
+      }
     } catch (e) {
       reject(e);
     }
@@ -98,19 +130,37 @@ const updateExportProduct = (id, data) => {
 const deleteExportProduct = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const checkProduct = await ExportProduct.findOne({ _id: id });
+      const checkExportProduct = await ExportProduct.findOne({ _id: id });
 
-      if (checkProduct === null) {
+      if (checkExportProduct === null) {
         resolve({
           status: "ERR",
           message: "The Product is not defined",
         });
+      } else {
+        const checkProduct = await Product.findOne({
+          luxasCode: checkExportProduct.luxasCode,
+        });
+
+        const filter = { luxasCode: checkProduct.luxasCode };
+
+        await Product.findOneAndUpdate(
+          filter,
+          {
+            quantity: Number(
+              checkProduct.quantity + checkExportProduct.quantity
+            ),
+          },
+          {
+            new: true,
+          }
+        );
+        await ExportProduct.findByIdAndDelete(id);
+        resolve({
+          status: "OK",
+          message: "DELETE EXPORT PRODUCT SUCCESS",
+        });
       }
-      await ExportProduct.findByIdAndDelete(id);
-      resolve({
-        status: "OK",
-        message: "DELETE EXPORT PRODUCT SUCCESS",
-      });
     } catch (e) {
       reject(e);
     }

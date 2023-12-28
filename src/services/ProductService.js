@@ -1,8 +1,7 @@
 const Product = require("../models/ProductModel");
-const createProduct = (newProduct) => {
+const createProduct = (newProduct, image) => {
   return new Promise(async (resolve, reject) => {
     const {
-      image,
       importDate,
       importNo_VatNo,
       luxasCode,
@@ -14,6 +13,7 @@ const createProduct = (newProduct) => {
       maker,
       shCode,
       quantity,
+      limitSetting,
       unit,
       price,
       amount,
@@ -38,7 +38,7 @@ const createProduct = (newProduct) => {
         });
       }
       const newProduct = await Product.create({
-        image,
+        image: image.originalname,
         importDate,
         importNo_VatNo,
         luxasCode,
@@ -50,6 +50,7 @@ const createProduct = (newProduct) => {
         maker,
         shCode,
         quantity,
+        limitSetting,
         unit,
         price,
         amount,
@@ -188,11 +189,29 @@ const getAllProduct = (limit, page, sort, filter) => {
         .skip(limit * page);
       resolve({
         status: "OK",
-        message: "Success",
+        message: "GET ALL PRODUCT SUCCESS",
         data: allProduct,
         total: totalProduct,
         pageCurrent: Number(page + 1),
         totalPage: Math.ceil(totalProduct / limit),
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const getAllLimitProduct = () => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const allProduct = await Product.find();
+      const limitProduct = allProduct.filter((product) => {
+        return product.quantity <= product.limitSetting;
+      });
+      resolve({
+        status: "OK",
+        message: "GET ALL LIMIT PRODUCT SUCCESS",
+        data: limitProduct,
       });
     } catch (e) {
       reject(e);
@@ -205,4 +224,5 @@ module.exports = {
   deleteProduct,
   getDetailsProduct,
   getAllProduct,
+  getAllLimitProduct,
 };
