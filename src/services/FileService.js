@@ -16,6 +16,29 @@ const uploadFile = (files) => {
     }
   });
 };
+
+const getDetailsFile = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const product = await File.findOne({ _id: id });
+
+      if (product === null) {
+        resolve({
+          status: "ERR",
+          message: "The File is not defined",
+        });
+      }
+      resolve({
+        status: "OK",
+        message: "GET DETAILS FILE SUCCESS",
+        data: product,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
 const getAllFile = () => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -30,7 +53,9 @@ const getAllFile = () => {
     }
   });
 };
+
 module.exports = {
   uploadFile,
+  getDetailsFile,
   getAllFile,
 };

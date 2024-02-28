@@ -7,28 +7,35 @@ const createUser = (newUser, image) => {
     const { name, idLuxas, email, password, phone, isAdmin } = newUser;
     try {
       const checkEmail = await User.findOne({ email: email });
+      const checkIdLuxas = await User.findOne({ idLuxas: idLuxas });
       if (checkEmail != null) {
         resolve({
           status: "ERR",
-          message: "The email is already exist",
+          message: "The Email Is Already Exist",
         });
-      }
-      const hash = bcrypt.hashSync(password, 10);
-      const createdUser = await User.create({
-        name,
-        idLuxas,
-        email,
-        password: hash,
-        phone,
-        image: image.originalname,
-        isAdmin,
-      });
-      if (createdUser) {
+      } else if (checkIdLuxas != null) {
         resolve({
-          status: "OK",
-          message: "CREATE USER SUCCESS",
-          data: createdUser,
+          status: "ERR",
+          message: "The Id Luxas Is Already Exist",
         });
+      } else {
+        const hash = bcrypt.hashSync(password, 10);
+        const createdUser = await User.create({
+          name,
+          idLuxas,
+          email,
+          password: hash,
+          phone,
+          image: image.originalname,
+          isAdmin,
+        });
+        if (createdUser) {
+          resolve({
+            status: "OK",
+            message: "CREATE USER SUCCESS",
+            data: createdUser,
+          });
+        }
       }
     } catch (e) {
       reject(e);
@@ -120,14 +127,52 @@ const deleteUser = (id) => {
     }
   });
 };
-const getAllUser = () => {
+const getAllUser = (limit, page, sort, filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const allUser = await User.find();
+      const totalUser = await User.find().count();
+      if (filter) {
+        const filterName = filter[0];
+        const allObjectFilter = User.find({
+          [filterName]: { $regex: filter[1] },
+        })
+          .limit(limit)
+          .skip(limit * page);
+        resolve({
+          status: "OK",
+          message: "SUCCESS",
+          data: allObjectFilter,
+          totalUser: totalUser,
+          pageCurrent: Number(page + 1),
+          totalPage: Math.ceil(totalUser / limit),
+        });
+      }
+      if (sort) {
+        const objectSort = {};
+        objectSort[sort[1]] = sort[0];
+        const allUserSort = await User.find()
+          .limit(limit)
+          .skip(limit * page)
+          .sort({ objectSort });
+        resolve({
+          status: "OK",
+          message: "SUCCESS",
+          data: allUserSort,
+          totalUser: totalUser,
+          pageCurrent: Number(page + 1),
+          totalPage: Math.ceil(totalUser / limit),
+        });
+      }
+      const allUser = await User.find()
+        .limit(limit)
+        .skip(limit * page);
       resolve({
         status: "OK",
         message: "GET ALL USER SUCCESS",
         data: allUser,
+        totalUser: totalUser,
+        pageCurrent: Number(page + 1),
+        totalPage: Math.ceil(totalUser / limit),
       });
     } catch (e) {
       reject(e);

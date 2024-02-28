@@ -1,5 +1,10 @@
 const ProductService = require("../services/ProductService");
 const createProduct = async (req, res) => {
+  const arrayFiles = req.files;
+  const imageFile = arrayFiles.find((file) => file.fieldname === "image");
+  const documentFiles = arrayFiles.filter(
+    (file) => file.fieldname === "documentFile"
+  );
   try {
     const {
       importDate,
@@ -23,12 +28,13 @@ const createProduct = async (req, res) => {
       feeShipping,
       costomsService,
       fines,
+      costImportTax,
+      productFee,
       totalFee,
       description,
       stockLocal,
       note,
     } = req.body;
-    const image = req.file;
     if (
       !importDate ||
       !importNo_VatNo ||
@@ -50,6 +56,8 @@ const createProduct = async (req, res) => {
       !vatImport ||
       !feeShipping ||
       !costomsService ||
+      !costImportTax ||
+      !productFee ||
       !totalFee ||
       !description ||
       !stockLocal
@@ -58,13 +66,23 @@ const createProduct = async (req, res) => {
         status: "ERR",
         message: "The input is required",
       });
-    } else if (!image) {
+    } else if (!imageFile) {
       return res.status(200).json({
         status: "ERR",
-        message: "The image is required",
+        message: "The avatar is required",
+      });
+    } else if (documentFiles.length === 0) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The document is required",
       });
     }
-    let response = await ProductService.createProduct(req.body, image);
+
+    const response = await ProductService.createProduct(
+      req.body,
+      imageFile,
+      documentFiles
+    );
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({ message: e });
@@ -119,6 +137,23 @@ const getDetailsProduct = async (req, res) => {
   }
 };
 
+const getDetailsProductByCode = async (req, res) => {
+  try {
+    const productCode = req.params.luxasCode;
+
+    if (!productCode) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The ProductId is required",
+      });
+    }
+    const response = await ProductService.getDetailsProductByCode(productCode);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({ message: e });
+  }
+};
+
 const getAllProduct = async (req, res) => {
   try {
     const { limit, page, sort, filter } = req.query;
@@ -136,22 +171,11 @@ const getAllProduct = async (req, res) => {
   }
 };
 
-const getAllLimitProduct = async (req, res) => {
-  try {
-    const response = await ProductService.getAllLimitProduct();
-    return res.status(200).json(response);
-  } catch (e) {
-    return res.status(404).json({
-      message: e,
-    });
-  }
-};
-
 module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
   getDetailsProduct,
+  getDetailsProductByCode,
   getAllProduct,
-  getAllLimitProduct,
 };

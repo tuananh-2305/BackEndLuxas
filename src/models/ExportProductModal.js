@@ -7,7 +7,7 @@ const exportProductSchema = new mongoose.Schema(
     image: { type: String, required: true },
     partName: { type: String, required: true },
     model: { type: String, required: true },
-    shCode: { type: Number, required: true },
+    shCode: { type: String, required: true },
     saleForCompany: { type: String, required: true },
     quantity: { type: Number, required: true },
     unit: { type: String, required: true },
@@ -19,7 +19,14 @@ const exportProductSchema = new mongoose.Schema(
     commission: { type: Number, required: true },
     feesIncurred: { type: Number, required: true },
     profit: { type: Number, required: true },
+    exportCode: { type: String, required: true },
     note: { type: String },
+    document: [
+      {
+        documentFileName: { type: String, required: true },
+        size: { type: String, required: true },
+      },
+    ],
   },
   {
     timestamps: true,

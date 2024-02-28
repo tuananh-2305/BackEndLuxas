@@ -1,6 +1,7 @@
 const ExportProduct = require("../models/ExportProductModal");
 const Product = require("../models/ProductModel");
-const createExportProduct = (newExportProduct) => {
+const File = require("../models/FileModal");
+const createExportProduct = (newExportProduct, arrayFiles) => {
   return new Promise(async (resolve, reject) => {
     const {
       implementer,
@@ -20,9 +21,28 @@ const createExportProduct = (newExportProduct) => {
       commission,
       feesIncurred,
       profit,
+      exportCode,
       note,
     } = newExportProduct;
     try {
+      const document = arrayFiles.map((file) => {
+        var arr = {
+          documentFileName: file.originalname,
+          size: file.size,
+        };
+        return arr;
+      });
+      if (document.length > 0) {
+        for (let i = 0; i < document.length; i++) {
+          const element = document[i];
+          await File.create({
+            typeFile: "Export",
+            fileCode: exportCode,
+            fileName: element.documentFileName,
+            size: element.size,
+          });
+        }
+      }
       const newExportProduct = await ExportProduct.create({
         implementer,
         luxasCode,
@@ -41,7 +61,9 @@ const createExportProduct = (newExportProduct) => {
         commission,
         feesIncurred,
         profit,
+        exportCode,
         note,
+        document: document,
       });
       if (newExportProduct) {
         resolve({
@@ -131,25 +153,32 @@ const deleteExportProduct = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
       const checkExportProduct = await ExportProduct.findOne({ _id: id });
+      const checkProduct = await Product.findOne({
+        luxasCode: checkExportProduct.luxasCode,
+      });
 
       if (checkExportProduct === null) {
         resolve({
           status: "ERR",
           message: "The Product is not defined",
         });
+      } else if (checkProduct === null) {
+        await ExportProduct.findByIdAndDelete(id);
+        resolve({
+          status: "OK",
+          message: "DELETE EXPORT PRODUCT SUCCESS",
+        });
       } else {
         const checkProduct = await Product.findOne({
           luxasCode: checkExportProduct.luxasCode,
         });
-
         const filter = { luxasCode: checkProduct.luxasCode };
-
         await Product.findOneAndUpdate(
           filter,
           {
-            quantity: Number(
-              checkProduct.quantity + checkExportProduct.quantity
-            ),
+            quantity:
+              Number(checkProduct.quantity) +
+              Number(checkExportProduct.quantity),
           },
           {
             new: true,
@@ -190,7 +219,7 @@ const getDetailsExportProduct = (id) => {
 const getAllExportProduct = (limit, page, sort, filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const totalProduct = ExportProduct.length;
+      const totalProduct = await ExportProduct.find().count();
       if (filter) {
         const filterName = filter[0];
         const allObjectFilter = await ExportProduct.find({
@@ -202,7 +231,7 @@ const getAllExportProduct = (limit, page, sort, filter) => {
           status: "OK",
           message: "SUCCESS",
           data: allObjectFilter,
-          total: totalProduct,
+          totalProduct: totalProduct,
           pageCurrent: Number(page + 1),
           totalPage: Math.ceil(totalProduct / limit),
         });
@@ -218,7 +247,7 @@ const getAllExportProduct = (limit, page, sort, filter) => {
           status: "OK",
           message: "SUCCESS",
           data: allProductSort,
-          total: totalProduct,
+          totalProduct: totalProduct,
           pageCurrent: Number(page + 1),
           totalPage: Math.ceil(totalProduct / limit),
         });
@@ -230,7 +259,7 @@ const getAllExportProduct = (limit, page, sort, filter) => {
         status: "OK",
         message: "Success",
         data: allProduct,
-        total: totalProduct,
+        totalProduct: totalProduct,
         pageCurrent: Number(page + 1),
         totalPage: Math.ceil(totalProduct / limit),
       });

@@ -1,5 +1,6 @@
 const ExportProductService = require("../services/ExportProductService");
 const createExportProduct = async (req, res) => {
+  const arrayFiles = req.files;
   try {
     const {
       implementer,
@@ -19,6 +20,7 @@ const createExportProduct = async (req, res) => {
       commission,
       feesIncurred,
       profit,
+      exportCode,
       note,
     } = req.body;
     if (
@@ -38,14 +40,18 @@ const createExportProduct = async (req, res) => {
       !shippingFee ||
       !commission ||
       !feesIncurred ||
-      !profit
+      !profit ||
+      !exportCode
     ) {
       return res.status(200).json({
         status: "ERR",
         message: "The input is required",
       });
     }
-    const response = await ExportProductService.createExportProduct(req.body);
+    const response = await ExportProductService.createExportProduct(
+      req.body,
+      arrayFiles
+    );
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({ message: e });

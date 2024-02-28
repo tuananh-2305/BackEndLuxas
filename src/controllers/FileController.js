@@ -14,6 +14,22 @@ const uploadFile = async (req, res, next) => {
   }
 };
 
+const getDetailsFile = async (req, res, next) => {
+  try {
+    const idFile = req.params.id;
+    if (!idFile) {
+      return res.status(200).json({
+        status: "ERR",
+        message: "The idFile is required",
+      });
+    }
+    const response = await FileService.getDetailsFile(idFile);
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(404).json({ message: e });
+  }
+};
+
 const getAllFile = async (req, res, next) => {
   try {
     const response = await FileService.getAllFile();
@@ -25,5 +41,6 @@ const getAllFile = async (req, res, next) => {
 
 module.exports = {
   uploadFile,
+  getDetailsFile,
   getAllFile,
 };

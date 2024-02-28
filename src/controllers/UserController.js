@@ -95,7 +95,13 @@ const deleteUser = async (req, res) => {
 
 const getAllUser = async (req, res) => {
   try {
-    const response = await UserService.getAllUser();
+    const { limit, page, sort, filter } = req.query;
+    const response = await UserService.getAllUser(
+      Number(limit) || null,
+      Number(page) || 0,
+      sort || "",
+      filter || ""
+    );
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({ message: e });

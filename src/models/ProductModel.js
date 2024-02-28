@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema(
     supplies: { type: String, required: true },
     suppliesAddress: { type: String, required: true },
     maker: { type: String, required: true },
-    shCode: { type: Number, required: true },
+    shCode: { type: String, required: true },
     quantity: { type: Number, required: true },
     limitSetting: { type: Number, required: true },
     unit: { type: String, required: true },
@@ -24,10 +24,18 @@ const productSchema = new mongoose.Schema(
     feeShipping: { type: Number, required: true },
     costomsService: { type: Number, required: true },
     fines: { type: String },
+    costImportTax: { type: Number, required: true },
+    productFee: { type: Number, required: true },
     totalFee: { type: Number, required: true },
     description: { type: String },
     stockLocal: { type: String, required: true },
     note: { type: String },
+    document: [
+      {
+        documentFileName: { type: String, required: true },
+        size: { type: String, required: true },
+      },
+    ],
   },
   {
     timestamps: true,

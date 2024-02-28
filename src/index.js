@@ -5,7 +5,6 @@ const mongoose = require("mongoose");
 const routes = require("./routes");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const File = require("./models/FileModal");
 
 dotenv.config();
 const app = express();
