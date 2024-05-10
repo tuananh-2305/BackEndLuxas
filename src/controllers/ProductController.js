@@ -28,9 +28,9 @@ const createProduct = async (req, res) => {
       feeShipping,
       costomsService,
       fines,
+      costImportUnit,
       costImportTax,
-      productFee,
-      totalFee,
+      totalFeeVat,
       description,
       stockLocal,
       note,
@@ -56,9 +56,9 @@ const createProduct = async (req, res) => {
       !vatImport ||
       !feeShipping ||
       !costomsService ||
+      !costImportUnit ||
       !costImportTax ||
-      !productFee ||
-      !totalFee ||
+      !totalFeeVat ||
       !description ||
       !stockLocal
     ) {
@@ -91,15 +91,20 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
   try {
     const productId = req.params.id;
-    ////const [productDetails, setProductDetails] = useState(initial());
-    const dataProduct = req.body.productDetails;
+    const dataProduct = req.body;
+    const arrayFiles = req.files;
+    const imageFile = arrayFiles.find((file) => file.fieldname === "image");
     if (!productId) {
       return res.status(200).json({
         status: "ERR",
         message: "The ProductId is required",
       });
     }
-    const response = await ProductService.updateProduct(productId, dataProduct);
+    const response = await ProductService.updateProduct(
+      productId,
+      dataProduct,
+      imageFile
+    );
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({ message: e });
@@ -156,12 +161,15 @@ const getDetailsProductByCode = async (req, res) => {
 
 const getAllProduct = async (req, res) => {
   try {
-    const { limit, page, sort, filter } = req.query;
+    const { limit, page, sort, filter, startDate, endDate } = req.query;
+    const currentPage = Number(page) - 1;
     const response = await ProductService.getAllProduct(
       Number(limit) || null,
-      Number(page) || 0,
+      Number(currentPage) || 0,
       sort || "",
-      filter || ""
+      filter || "",
+      startDate || "",
+      endDate || ""
     );
     return res.status(200).json(response);
   } catch (e) {

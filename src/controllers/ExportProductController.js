@@ -6,6 +6,7 @@ const createExportProduct = async (req, res) => {
       implementer,
       luxasCode,
       image,
+      exportDate,
       partName,
       model,
       shCode,
@@ -19,20 +20,27 @@ const createExportProduct = async (req, res) => {
       shippingFee,
       commission,
       feesIncurred,
-      profit,
+      costImportUnit,
       exportCode,
+      salePriceUnit,
+      totalExportFee,
+      exportFeeVat,
+      profit,
+      profitNoVat,
       note,
     } = req.body;
     if (
       !implementer ||
       !luxasCode ||
       !image ||
+      !exportDate ||
       !partName ||
       !model ||
       !shCode ||
       !saleForCompany ||
       !quantity ||
       !unit ||
+      !exportCode ||
       !price ||
       !amount ||
       !customerSevice ||
@@ -40,8 +48,12 @@ const createExportProduct = async (req, res) => {
       !shippingFee ||
       !commission ||
       !feesIncurred ||
+      !costImportUnit ||
+      !salePriceUnit ||
+      !totalExportFee ||
+      !exportFeeVat ||
       !profit ||
-      !exportCode
+      !profitNoVat
     ) {
       return res.status(200).json({
         status: "ERR",
@@ -60,7 +72,7 @@ const createExportProduct = async (req, res) => {
 const updateExportProduct = async (req, res) => {
   try {
     const productId = req.params.id;
-    const dataProduct = req.body.productDetails;
+    const dataProduct = req.body;
     if (!productId) {
       return res.status(200).json({
         status: "ERR",

@@ -9,9 +9,9 @@ const storage = multer.diskStorage({
   destination: function (req, file, callback) {
     const typeFile = file.mimetype.split("/")[0];
     if (typeFile === "image") {
-      callback(null, path.join(__dirname, "../uploads/images/products"));
+      callback(null, path.join(__dirname, "../uploads/products/images"));
     } else {
-      callback(null, path.join(__dirname, "../uploads/files"));
+      callback(null, path.join(__dirname, "../uploads/products/files"));
     }
   },
   filename: function (req, file, callback) {
@@ -22,7 +22,11 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 router.post("/create-product", upload.any(), ProductController.createProduct);
-router.put("/update-product/:id", ProductController.updateProduct);
+router.put(
+  "/update-product/:id",
+  upload.any(),
+  ProductController.updateProduct
+);
 router.delete("/delete-product/:id", ProductController.deleteProduct);
 router.get("/details-product/:id", ProductController.getDetailsProduct);
 router.get(

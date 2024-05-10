@@ -62,15 +62,15 @@ const loginUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    //const [inforUser, setInforUser] = useState(initial());
-    const dataUser = req.body.inforUser;
+    const dataUser = req.body;
+    const newFile = req.file;
     if (!userId) {
       return res.status(200).json({
         status: "ERR",
         message: "The UserId is required",
       });
     }
-    const response = await UserService.updateUser(userId, dataUser);
+    const response = await UserService.updateUser(userId, dataUser, newFile);
     return res.status(200).json(response);
   } catch (e) {
     return res.status(404).json({ message: e });

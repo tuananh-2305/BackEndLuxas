@@ -1,5 +1,5 @@
+const fs = require("fs-extra");
 const ExportProduct = require("../models/ExportProductModal");
-const Product = require("../models/ProductModel");
 const File = require("../models/FileModal");
 const createExportProduct = (newExportProduct, arrayFiles) => {
   return new Promise(async (resolve, reject) => {
@@ -7,12 +7,14 @@ const createExportProduct = (newExportProduct, arrayFiles) => {
       implementer,
       luxasCode,
       image,
+      exportDate,
       partName,
       model,
       shCode,
       saleForCompany,
       quantity,
       unit,
+      exportCode,
       price,
       amount,
       customerSevice,
@@ -20,8 +22,12 @@ const createExportProduct = (newExportProduct, arrayFiles) => {
       shippingFee,
       commission,
       feesIncurred,
+      costImportUnit,
+      salePriceUnit,
+      totalExportFee,
+      exportFeeVat,
       profit,
-      exportCode,
+      profitNoVat,
       note,
     } = newExportProduct;
     try {
@@ -36,8 +42,6 @@ const createExportProduct = (newExportProduct, arrayFiles) => {
         for (let i = 0; i < document.length; i++) {
           const element = document[i];
           await File.create({
-            typeFile: "Export",
-            fileCode: exportCode,
             fileName: element.documentFileName,
             size: element.size,
           });
@@ -45,6 +49,7 @@ const createExportProduct = (newExportProduct, arrayFiles) => {
       }
       const newExportProduct = await ExportProduct.create({
         implementer,
+        exportDate,
         luxasCode,
         image,
         partName,
@@ -53,6 +58,7 @@ const createExportProduct = (newExportProduct, arrayFiles) => {
         saleForCompany,
         quantity,
         unit,
+        exportCode,
         price,
         amount,
         customerSevice,
@@ -60,8 +66,12 @@ const createExportProduct = (newExportProduct, arrayFiles) => {
         shippingFee,
         commission,
         feesIncurred,
+        costImportUnit,
+        salePriceUnit,
+        totalExportFee,
+        exportFeeVat,
         profit,
-        exportCode,
+        profitNoVat,
         note,
         document: document,
       });
@@ -83,66 +93,24 @@ const updateExportProduct = (id, data) => {
     try {
       const checkExportProduct = await ExportProduct.findOne({ _id: id });
 
-      const checkProduct = await Product.findOne({
-        luxasCode: checkExportProduct.luxasCode,
-      });
-      const idProduct = checkProduct._id.toString();
-      const quantityUpdate = data.quantity;
-      const quantityExport = checkExportProduct.quantity;
-      const quantityProduct = checkProduct.quantity;
-      if (checkProduct === null) {
+      if (checkExportProduct === null) {
         resolve({
           status: "ERR",
           message: "The Export Product is not defined",
         });
       }
-      if (quantityUpdate <= quantityExport) {
-        await Product.findByIdAndUpdate(
-          idProduct,
-          {
-            quantity:
-              Number(quantityProduct) + Number(quantityExport - quantityUpdate),
-          },
-          {
-            new: true,
-          }
-        );
-        const updateExportProduct = await ExportProduct.findByIdAndUpdate(
-          { _id: id },
-          { $set: data },
-          {
-            new: true,
-          }
-        );
-        resolve({
-          status: "OK",
-          message: "UPDATE EXPORT PRODUCT SUCCESS",
-          data: updateExportProduct,
-        });
-      } else if (quantityUpdate > quantityExport) {
-        await Product.findByIdAndUpdate(
-          idProduct,
-          {
-            quantity:
-              Number(quantityProduct) - Number(quantityUpdate - quantityExport),
-          },
-          {
-            new: true,
-          }
-        );
-        const updateExportProduct = await ExportProduct.findByIdAndUpdate(
-          { _id: id },
-          { $set: data },
-          {
-            new: true,
-          }
-        );
-        resolve({
-          status: "OK",
-          message: "UPDATE EXPORT PRODUCT SUCCESS",
-          data: updateExportProduct,
-        });
-      }
+      const updateExportProduct = await ExportProduct.findByIdAndUpdate(
+        { _id: id },
+        { $set: data },
+        {
+          new: true,
+        }
+      );
+      resolve({
+        status: "OK",
+        message: "UPDATE EXPORT PRODUCT SUCCESS",
+        data: updateExportProduct,
+      });
     } catch (e) {
       reject(e);
     }
@@ -152,44 +120,32 @@ const updateExportProduct = (id, data) => {
 const deleteExportProduct = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
+      const directoryPath = __basedir + "/uploads/products/files/";
       const checkExportProduct = await ExportProduct.findOne({ _id: id });
-      const checkProduct = await Product.findOne({
-        luxasCode: checkExportProduct.luxasCode,
-      });
-
+      const document = checkExportProduct.document;
       if (checkExportProduct === null) {
         resolve({
           status: "ERR",
-          message: "The Product is not defined",
-        });
-      } else if (checkProduct === null) {
-        await ExportProduct.findByIdAndDelete(id);
-        resolve({
-          status: "OK",
-          message: "DELETE EXPORT PRODUCT SUCCESS",
-        });
-      } else {
-        const checkProduct = await Product.findOne({
-          luxasCode: checkExportProduct.luxasCode,
-        });
-        const filter = { luxasCode: checkProduct.luxasCode };
-        await Product.findOneAndUpdate(
-          filter,
-          {
-            quantity:
-              Number(checkProduct.quantity) +
-              Number(checkExportProduct.quantity),
-          },
-          {
-            new: true,
-          }
-        );
-        await ExportProduct.findByIdAndDelete(id);
-        resolve({
-          status: "OK",
-          message: "DELETE EXPORT PRODUCT SUCCESS",
+          message: "The Export Product is not defined",
         });
       }
+      if (document.length > 0) {
+        document.forEach((file) => {
+          fs.unlink(directoryPath + file.documentFileName, async (err) => {
+            if (err) {
+              resolve({
+                status: "ERR",
+                message: "Could not delete file",
+              });
+            }
+          });
+        });
+      }
+      await ExportProduct.findByIdAndDelete(id);
+      resolve({
+        status: "OK",
+        message: "DELETE EXPORT PRODUCT SUCCESS",
+      });
     } catch (e) {
       reject(e);
     }

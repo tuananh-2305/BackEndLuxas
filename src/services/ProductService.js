@@ -1,3 +1,4 @@
+const fs = require("fs-extra");
 const Product = require("../models/ProductModel");
 const File = require("../models/FileModal");
 const createProduct = (newProduct, imageFile, documentFiles) => {
@@ -24,9 +25,9 @@ const createProduct = (newProduct, imageFile, documentFiles) => {
       feeShipping,
       costomsService,
       fines,
+      costImportUnit,
       costImportTax,
-      productFee,
-      totalFee,
+      totalFeeVat,
       description,
       stockLocal,
       note,
@@ -81,9 +82,9 @@ const createProduct = (newProduct, imageFile, documentFiles) => {
           feeShipping,
           costomsService,
           fines,
+          costImportUnit,
           costImportTax,
-          productFee,
-          totalFee,
+          totalFeeVat,
           description,
           stockLocal,
           note,
@@ -103,16 +104,28 @@ const createProduct = (newProduct, imageFile, documentFiles) => {
     }
   });
 };
-const updateProduct = (id, data) => {
+const updateProduct = (id, data, imageFile) => {
   return new Promise(async (resolve, reject) => {
     try {
       const checkProduct = await Product.findById({ _id: id });
-
+      const directoryPath = __basedir + "/uploads/products/images/";
+      const productImage = checkProduct.image;
       if (checkProduct === null) {
         resolve({
           status: "ERR",
           message: "The Product is not defined",
         });
+      }
+      if (imageFile && productImage) {
+        fs.unlink(directoryPath + productImage, async (err) => {
+          if (err) {
+            resolve({
+              status: "ERR",
+              message: "Could not update image",
+            });
+          }
+        });
+        data.image = imageFile.originalname;
       }
       const updateProduct = await Product.findByIdAndUpdate(
         { _id: id },
@@ -135,11 +148,35 @@ const deleteProduct = (id) => {
   return new Promise(async (resolve, reject) => {
     try {
       const checkProduct = await Product.findOne({ _id: id });
-
+      const directoryPath = __basedir + "/uploads/products/files/";
+      const pathImage = __basedir + "/uploads/products/images/";
+      const document = checkProduct.document;
       if (checkProduct === null) {
         resolve({
           status: "ERR",
           message: "The Product is not defined",
+        });
+      }
+      if (fs.existsSync(pathImage + checkProduct.image)) {
+        fs.unlink(pathImage + checkProduct.image, async (err) => {
+          if (err) {
+            resolve({
+              status: "ERR",
+              message: "Could not delete image",
+            });
+          }
+        });
+      }
+      if (document.length > 0) {
+        document.forEach((file) => {
+          fs.unlink(directoryPath + file.documentFileName, async (err) => {
+            if (err) {
+              resolve({
+                status: "ERR",
+                message: "Could not delete file",
+              });
+            }
+          });
         });
       }
       await Product.findByIdAndDelete(id);
@@ -195,7 +232,7 @@ const getDetailsProductByCode = (productCode) => {
   });
 };
 
-const getAllProduct = (limit, page, sort, filter) => {
+const getAllProduct = (limit, page, sort, filter, startDate, endDate) => {
   return new Promise(async (resolve, reject) => {
     try {
       const totalProduct = await Product.find().count();
@@ -210,6 +247,25 @@ const getAllProduct = (limit, page, sort, filter) => {
           status: "OK",
           message: "SUCCESS",
           data: allObjectFilter,
+          totalProduct: totalProduct,
+          pageCurrent: Number(page + 1),
+          totalPage: Math.ceil(totalProduct / limit),
+        });
+      }
+      if (startDate || endDate) {
+        const allProductDate = await Product.find({
+          createdAt: {
+            $gte: startDate,
+            $lte: endDate,
+          },
+        })
+          .limit(limit)
+          .skip(limit * page);
+        console.log(allProductDate);
+        resolve({
+          status: "OK",
+          message: "SUCCESS",
+          data: allProductDate,
           totalProduct: totalProduct,
           pageCurrent: Number(page + 1),
           totalPage: Math.ceil(totalProduct / limit),

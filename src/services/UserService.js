@@ -1,3 +1,4 @@
+const fs = require("fs-extra");
 const User = require("../models/UserModel");
 const { genneralAccessToken, genneralRefreshToken } = require("./jwtService");
 const bcrypt = require("bcrypt");
@@ -82,18 +83,62 @@ const loginUser = (userLogin) => {
     }
   });
 };
-const updateUser = (id, data) => {
+const updateUser = (id, data, newFile) => {
   return new Promise(async (resolve, reject) => {
     try {
       const checkUser = await User.findOne({ _id: id });
-
+      const comparePassword = bcrypt.compareSync(
+        data.password,
+        checkUser.password
+      );
+      const directoryPath = __basedir + "/uploads/avatar/";
+      const avatar = checkUser.image;
       if (checkUser === null) {
         resolve({
           status: "ERR",
           message: "The User is not defined",
         });
       }
-      const updateUser = await User.findOneAndUpdate(checkUser, data, {
+      if (!comparePassword) {
+        resolve({
+          status: "ERR",
+          message: "The password is incorrect",
+        });
+      }
+      if (data.password === data.newPassword) {
+        resolve({
+          status: "ERR",
+          message: "The password must be different new password",
+        });
+      }
+      if (newFile && avatar) {
+        fs.unlink(directoryPath + avatar, async (err) => {
+          if (err) {
+            resolve({
+              status: "ERR",
+              message: "Could not update avatar",
+            });
+          }
+        });
+        data.image = newFile.originalname;
+      }
+      for (let key in data) {
+        if (key === "password") {
+          data[key] = data.newPassword;
+          break;
+        }
+      }
+      const remove = (object, removeList = []) => {
+        const result = { ...object };
+        removeList.forEach((item) => {
+          delete result[item];
+        });
+        return result;
+      };
+      const newData = remove(data, ["newPassword"]);
+      const hash = bcrypt.hashSync(newData.password, 10);
+      newData.password = hash;
+      const updateUser = await User.findOneAndUpdate(checkUser, newData, {
         new: true,
       });
       resolve({

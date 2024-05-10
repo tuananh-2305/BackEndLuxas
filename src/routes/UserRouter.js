@@ -11,7 +11,7 @@ const path = require("path");
 
 const storage = multer.diskStorage({
   destination: function (req, file, callback) {
-    callback(null, path.join(__dirname, "../uploads/images/avatar"));
+    callback(null, path.join(__dirname, "../uploads/avatar"));
   },
   filename: function (req, file, callback) {
     callback(null, file.originalname);
@@ -23,7 +23,12 @@ const upload = multer({ storage: storage });
 router.post("/register", upload.single("image"), UserController.createUser);
 router.post("/login", UserController.loginUser);
 router.post("/log-out", UserController.logoutUser);
-router.put("/update-user/:id", authMiddleWare, UserController.updateUser);
+router.put(
+  "/update-user/:id",
+  upload.single("image"),
+  authMiddleWare,
+  UserController.updateUser
+);
 router.delete("/delete-user/:id", authMiddleWare, UserController.deleteUser);
 router.get("/get-all-user", UserController.getAllUser);
 router.get(
